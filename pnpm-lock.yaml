@@ -36,6 +36,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@tranzmit/exit-button-embed':
+        specifier: workspace:*
+        version: link:../embed
       cors:
         specifier: ^2.8.5
         version: 2.8.6

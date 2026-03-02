@@ -78,6 +78,9 @@ let cachedEmbedJs: string | null = null;
 app.get('/embed.js', (_req, res) => {
   if (!cachedEmbedJs) {
     const paths = [
+      resolve(__dirname, 'public/embed.js'),
+      resolve(__dirname, '../public/embed.js'),
+      resolve(process.cwd(), 'public/embed.js'),
       resolve(__dirname, '../../embed/dist/index.global.js'),
       resolve(process.cwd(), 'packages/embed/dist/index.global.js'),
     ];
