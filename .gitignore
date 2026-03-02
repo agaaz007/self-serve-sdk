@@ -5,3 +5,5 @@ dist/
 *.log
 .DS_Store
 coverage/
+# Build artifact copied from embed package
+packages/backend/public/embed.js
