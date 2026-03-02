@@ -19,6 +19,8 @@ import { relations } from 'drizzle-orm';
 export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
+  email: text('email'),
+  phone: text('phone'),
   apiKeyHash: text('api_key_hash').notNull(),
   allowedOrigins: text('allowed_origins').array().default([]),
   posthogApiKey: text('posthog_api_key'),

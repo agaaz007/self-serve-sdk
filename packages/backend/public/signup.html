@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tranzmit - Get Your API Key</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      background-color: #0a0a0a;
+      color: #e5e5e5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .card {
+      background-color: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 4px 6px -1px rgba(0, 0, 0, 0.3),
+        0 20px 40px -8px rgba(0, 0, 0, 0.5);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      outline: none;
+    }
+
+    .form-group input::placeholder {
+      color: #555;
+    }
+
+    .form-group input:focus {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    }
+
+    .submit-btn {
+      width: 100%;
+      height: 48px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.1s ease, filter 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      filter: brightness(1.15);
+    }
+
+    .submit-btn:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-banner {
+      display: none;
+      background-color: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 16px;
+      color: #f87171;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .error-banner.visible {
+      display: block;
+    }
+
+    /* Success state */
+    .success-container {
+      display: none;
+      text-align: center;
+    }
+
+    .success-container.visible {
+      display: block;
+    }
+
+    .checkmark-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      background: rgba(34, 197, 94, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .checkmark-icon svg {
+      width: 32px;
+      height: 32px;
+      color: #22c55e;
+    }
+
+    .success-heading {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 24px;
+    }
+
+    .api-key-box {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .api-key-value {
+      flex: 1;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono',
+        'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      color: #e5e5e5;
+      word-break: break-all;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      background-color: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      color: #ccc;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background-color: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+
+    .warning-banner {
+      background-color: rgba(234, 179, 8, 0.08);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 28px;
+      color: #eab308;
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .warning-banner svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+    }
+
+    .quickstart-section {
+      text-align: left;
+      margin-bottom: 28px;
+    }
+
+    .quickstart-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .code-block {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .code-block pre {
+      margin: 0;
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono',
+        'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #a3a3a3;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .code-block .highlight {
+      color: #7c3aed;
+    }
+
+    .code-block .string {
+      color: #22c55e;
+    }
+
+    .code-block .attr {
+      color: #eab308;
+    }
+
+    .copy-code-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 5px;
+      color: #888;
+      font-size: 12px;
+      font-family: inherit;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .copy-code-btn:hover {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .copy-code-btn.copied {
+      background-color: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+
+    .dashboard-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #7c3aed;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .dashboard-link:hover {
+      color: #a78bfa;
+    }
+
+    .dashboard-link svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
+    }
+
+    .dashboard-link:hover svg {
+      transform: translateX(3px);
+    }
+
+    .divider {
+      height: 1px;
+      background: #2a2a2a;
+      margin: 24px 0;
+    }
+
+    @media (max-width: 520px) {
+      .card {
+        padding: 28px 20px;
+        border-radius: 12px;
+      }
+
+      .logo {
+        font-size: 28px;
+      }
+
+      .api-key-box {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .api-key-value {
+        text-align: center;
+      }
+
+      .copy-btn {
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="logo">Tranzmit</div>
+      <div class="subtitle">Get your Exit Button SDK API key</div>
+    </div>
+
+    <div id="formContainer">
+      <form id="signupForm" novalidate>
+        <div class="form-group">
+          <label for="companyName">Company Name</label>
+          <input type="text" id="companyName" name="companyName" placeholder="Acme Inc." required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@company.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000">
+        </div>
+
+        <div class="form-group">
+          <label for="posthogApiKey">PostHog API Key</label>
+          <input type="text" id="posthogApiKey" name="posthogApiKey" placeholder="phc_...">
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Get API Key</button>
+
+        <div class="error-banner" id="errorBanner"></div>
+      </form>
+    </div>
+
+    <div class="success-container" id="successContainer">
+      <div class="checkmark-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      </div>
+      <h2 class="success-heading">You're all set!</h2>
+
+      <div class="api-key-box">
+        <span class="api-key-value" id="apiKeyValue"></span>
+        <button class="copy-btn" id="copyKeyBtn">Copy</button>
+      </div>
+
+      <div class="warning-banner">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+        </svg>
+        <span>Save this key now. It will not be shown again.</span>
+      </div>
+
+      <div class="quickstart-section">
+        <div class="quickstart-title">Quick Start</div>
+        <div class="code-block">
+          <button class="copy-code-btn" id="copyCodeBtn">Copy</button>
+          <pre id="codeSnippet"></pre>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <a href="#" class="dashboard-link">
+        Go to Dashboard
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var form = document.getElementById('signupForm');
+      var formContainer = document.getElementById('formContainer');
+      var successContainer = document.getElementById('successContainer');
+      var submitBtn = document.getElementById('submitBtn');
+      var errorBanner = document.getElementById('errorBanner');
+      var apiKeyValue = document.getElementById('apiKeyValue');
+      var copyKeyBtn = document.getElementById('copyKeyBtn');
+      var copyCodeBtn = document.getElementById('copyCodeBtn');
+      var codeSnippet = document.getElementById('codeSnippet');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        errorBanner.classList.remove('visible');
+        errorBanner.textContent = '';
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating your account\u2026';
+
+        var data = {
+          companyName: document.getElementById('companyName').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          posthogApiKey: document.getElementById('posthogApiKey').value.trim()
+        };
+
+        fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        })
+        .then(function(response) {
+          if (!response.ok) {
+            return response.json().then(function(err) {
+              throw new Error(err.message || err.error || 'Something went wrong. Please try again.');
+            });
+          }
+          return response.json();
+        })
+        .then(function(result) {
+          var apiKey = result.apiKey || result.api_key || result.key;
+
+          apiKeyValue.textContent = apiKey;
+
+          codeSnippet.innerHTML =
+            '<span class="highlight">&lt;script</span> ' +
+            '<span class="attr">src</span>=<span class="string">"https://api.tranzmitai.com/embed.js"</span>\n' +
+            '  <span class="attr">data-api-key</span>=<span class="string">"' + escapeHtml(apiKey) + '"</span>' +
+            '<span class="highlight">&gt;&lt;/script&gt;</span>';
+
+          formContainer.style.display = 'none';
+          successContainer.classList.add('visible');
+        })
+        .catch(function(err) {
+          errorBanner.textContent = err.message;
+          errorBanner.classList.add('visible');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Get API Key';
+        });
+      });
+
+      copyKeyBtn.addEventListener('click', function() {
+        var key = apiKeyValue.textContent;
+        navigator.clipboard.writeText(key).then(function() {
+          copyKeyBtn.textContent = 'Copied!';
+          copyKeyBtn.classList.add('copied');
+          setTimeout(function() {
+            copyKeyBtn.textContent = 'Copy';
+            copyKeyBtn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+
+      copyCodeBtn.addEventListener('click', function() {
+        var key = apiKeyValue.textContent;
+        var snippet =
+          '<script src="https://api.tranzmitai.com/embed.js"\n' +
+          '  data-api-key="' + key + '"><\/script>';
+        navigator.clipboard.writeText(snippet).then(function() {
+          copyCodeBtn.textContent = 'Copied!';
+          copyCodeBtn.classList.add('copied');
+          setTimeout(function() {
+            copyCodeBtn.textContent = 'Copy';
+            copyCodeBtn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+    })();
+  </script>
+</body>
+</html>

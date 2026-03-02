@@ -16,10 +16,11 @@ import { verifyWebhookSignature, resolveSessionId, analyzeTranscript } from './l
 import { InitiateRequestSchema, CompleteRequestSchema, PrefetchRequestSchema } from './lib/validation';
 import { authenticate } from './middleware/auth';
 import { validate } from './middleware/validate';
-import { globalRateLimit, initiateRateLimit, completeRateLimit, prefetchRateLimit } from './middleware/rate-limit';
+import { globalRateLimit, initiateRateLimit, completeRateLimit, prefetchRateLimit, signupRateLimit } from './middleware/rate-limit';
 import { checkQuota } from './middleware/check-quota';
 import { adminAuth } from './middleware/admin-auth';
 import adminRouter from './routes/admin';
+import signupRouter from './routes/signup';
 import { prefetchKey, prefetchGet, prefetchSetPending } from './lib/prefetch-cache';
 import { getPosthogCreds } from './lib/posthog-helpers';
 import { db, sessions, pool } from './db';
@@ -98,6 +99,21 @@ app.get('/embed.js', (_req, res) => {
   }
 });
 
+// ============ Signup Page ============
+app.get('/signup', (_req, res) => {
+  const paths = [
+    resolve(__dirname, '../public/signup.html'),
+    resolve(process.cwd(), 'packages/backend/public/signup.html'),
+    resolve(process.cwd(), 'public/signup.html'),
+  ];
+  for (const p of paths) {
+    if (existsSync(p)) {
+      res.sendFile(p);
+      return;
+    }
+  }
+  res.status(404).send('Signup page not found');
+});
 // ============ API Endpoints ============
 
 /**
@@ -520,6 +536,8 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// ============ Self-Serve Signup ============
+app.use('/api/signup', signupRateLimit, signupRouter);
 // ============ Admin API ============
 app.use('/api/admin', adminAuth, adminRouter);
 

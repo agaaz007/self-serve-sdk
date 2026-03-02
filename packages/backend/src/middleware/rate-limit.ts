@@ -68,3 +68,15 @@ export const globalRateLimit = rateLimit({
   legacyHeaders: false,
   message: RATE_LIMIT_MESSAGE,
 });
+
+/**
+ * Rate limiter for the public signup endpoint.
+ * 5 signups per IP per hour to prevent abuse.
+ */
+export const signupRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many signup attempts. Please try again later.' },
+});
