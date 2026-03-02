@@ -13,7 +13,9 @@
     },
     "./embed": "./dist/index.global.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -21,11 +23,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@11labs/client": "^0.2.0",
     "@tranzmit/exit-button-core": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "tsup": "^8.0.1"
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
   },
   "license": "MIT"
 }
