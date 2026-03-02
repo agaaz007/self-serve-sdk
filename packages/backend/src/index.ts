@@ -80,17 +80,23 @@ let cachedEmbedJs: string | null = null;
 app.get('/embed.js', (_req, res) => {
   if (!cachedEmbedJs) {
     const paths = [
-      resolve(__dirname, 'public/embed.js'),
-      resolve(__dirname, '../public/embed.js'),
       resolve(process.cwd(), 'public/embed.js'),
+      resolve(__dirname, '../public/embed.js'),
+      resolve(__dirname, 'public/embed.js'),
       resolve(__dirname, '../../embed/dist/index.global.js'),
       resolve(process.cwd(), 'packages/embed/dist/index.global.js'),
     ];
+    const checked: Record<string, boolean> = {};
     for (const p of paths) {
-      if (existsSync(p)) {
+      const found = existsSync(p);
+      checked[p] = found;
+      if (found) {
         cachedEmbedJs = readFileSync(p, 'utf-8');
         break;
       }
+    }
+    if (!cachedEmbedJs) {
+      logger.error({ __dirname, cwd: process.cwd(), checked }, 'embed.js not found at any candidate path');
     }
   }
 
@@ -107,9 +113,9 @@ app.get('/embed.js', (_req, res) => {
 // ============ Signup Page ============
 app.get('/signup', (_req, res) => {
   const candidates = [
-    resolve(__dirname, 'public/signup.html'),          // @vercel/node: src/ sibling
-    resolve(__dirname, '../public/signup.html'),        // local dist/
-    resolve(process.cwd(), 'public/signup.html'),       // cwd fallback
+    resolve(process.cwd(), 'public/signup.html'),       // Vercel: process.cwd() = /var/task
+    resolve(__dirname, '../public/signup.html'),         // local dist/
+    resolve(__dirname, 'public/signup.html'),            // sibling
     resolve(process.cwd(), 'packages/backend/public/signup.html'),
   ];
   for (const p of candidates) {
