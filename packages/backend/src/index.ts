@@ -101,12 +101,13 @@ app.get('/embed.js', (_req, res) => {
 
 // ============ Signup Page ============
 app.get('/signup', (_req, res) => {
-  const paths = [
-    resolve(__dirname, '../public/signup.html'),
+  const candidates = [
+    resolve(__dirname, 'public/signup.html'),          // @vercel/node: src/ sibling
+    resolve(__dirname, '../public/signup.html'),        // local dist/
+    resolve(process.cwd(), 'public/signup.html'),       // cwd fallback
     resolve(process.cwd(), 'packages/backend/public/signup.html'),
-    resolve(process.cwd(), 'public/signup.html'),
   ];
-  for (const p of paths) {
+  for (const p of candidates) {
     if (existsSync(p)) {
       res.sendFile(p);
       return;

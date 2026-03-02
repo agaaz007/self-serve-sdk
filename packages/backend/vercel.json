@@ -1,14 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "npx tsup",
-  "outputDirectory": "dist",
-  "functions": {
-    "dist/index.js": {
-      "memory": 512,
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "src/index.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["public/**"]
+      }
     }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/dist/index.js" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/src/index.ts" }
   ]
 }
