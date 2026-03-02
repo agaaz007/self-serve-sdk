@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": "npx tsup",
+  "outputDirectory": "dist",
+  "functions": {
+    "dist/index.js": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/dist/index.js" }
+  ]
+}
