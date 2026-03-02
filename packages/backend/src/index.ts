@@ -126,6 +126,24 @@ app.get('/signup', (_req, res) => {
   }
   res.status(404).send('Signup page not found');
 });
+
+// ============ Root + Favicons ============
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    service: 'Exit Button Backend',
+    status: 'ok',
+    health: '/api/health',
+  });
+});
+
+app.get('/favicon.ico', (_req, res) => {
+  res.status(204).end();
+});
+
+app.get('/favicon.png', (_req, res) => {
+  res.status(204).end();
+});
+
 // ============ API Endpoints ============
 
 /**
