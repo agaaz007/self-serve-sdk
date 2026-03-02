@@ -179,7 +179,7 @@ class ExitButton implements ExitButtonInstance {
 
     // Default backend URL to production
     if (!config.backendUrl) {
-      config.backendUrl = 'https://api.tranzmitai.com/v1';
+      config.backendUrl = 'https://api.tranzmitai.com';
     }
     this.apiClient = createApiClient({ apiKey: config.apiKey, baseUrl: config.backendUrl });
 
@@ -764,7 +764,7 @@ class ExitButton implements ExitButtonInstance {
 
   private setupVoiceHandler(sessionId: string): void {
     // Voice goes through ElevenLabs directly — this handler is for legacy/mock mode only
-    const voiceUrl = `wss://api.tranzmitai.com/v1/cancel/voice?sessionId=${sessionId}`;
+    const voiceUrl = `wss://api.tranzmitai.com/cancel/voice?sessionId=${sessionId}`;
 
     this.voice = new VoiceHandler({
       url: voiceUrl,
