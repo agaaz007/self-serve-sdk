@@ -247,3 +247,32 @@ describe('POST /api/exit-session/complete', () => {
     expect(res.body).toHaveProperty('error', 'Validation failed');
   });
 });
+
+describe('GET /embed.js', () => {
+  it('returns 200 with JavaScript content-type', async () => {
+    const res = await request(app).get('/embed.js');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/application\/javascript/);
+    expect(res.headers['access-control-allow-origin']).toBe('*');
+    expect(res.headers['cache-control']).toContain('public');
+  });
+
+  it('returns non-empty JavaScript body', async () => {
+    const res = await request(app).get('/embed.js');
+
+    expect(res.status).toBe(200);
+    expect(res.text.length).toBeGreaterThan(100);
+    // Should contain the IIFE bundle (ExitButton global)
+    expect(res.text).toContain('ExitButton');
+  });
+});
+
+describe('GET /signup', () => {
+  it('returns 200 with HTML content-type', async () => {
+    const res = await request(app).get('/signup');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/text\/html/);
+  });
+});
