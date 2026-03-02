@@ -493,9 +493,11 @@
           apiKeyValue.textContent = apiKey;
 
           codeSnippet.innerHTML =
-            '<span class="highlight">&lt;script</span> ' +
-            '<span class="attr">src</span>=<span class="string">"https://api.tranzmitai.com/embed.js"</span>\n' +
-            '  <span class="attr">data-api-key</span>=<span class="string">"' + escapeHtml(apiKey) + '"</span>' +
+            '<span class="highlight">&lt;script</span>\n' +
+            '  <span class="attr">src</span>=<span class="string">"https://api.tranzmitai.com/embed.js"</span>\n' +
+            '  <span class="attr">data-api-key</span>=<span class="string">"' + escapeHtml(apiKey) + '"</span>\n' +
+            '  <span class="attr">data-attach</span>=<span class="string">"#cancel-btn"</span>\n' +
+            '  <span class="attr">data-backend-url</span>=<span class="string">"https://api.tranzmitai.com"</span>\n' +
             '<span class="highlight">&gt;&lt;/script&gt;</span>';
 
           formContainer.style.display = 'none';
@@ -524,8 +526,12 @@
       copyCodeBtn.addEventListener('click', function() {
         var key = apiKeyValue.textContent;
         var snippet =
-          '<script src="https://api.tranzmitai.com/embed.js"\n' +
-          '  data-api-key="' + key + '"><\/script>';
+          '<script\n' +
+          '  src="https://api.tranzmitai.com/embed.js"\n' +
+          '  data-api-key="' + key + '"\n' +
+          '  data-attach="#cancel-btn"\n' +
+          '  data-backend-url="https://api.tranzmitai.com"\n' +
+          '><\/script>';
         navigator.clipboard.writeText(snippet).then(function() {
           copyCodeBtn.textContent = 'Copied!';
           copyCodeBtn.classList.add('copied');
