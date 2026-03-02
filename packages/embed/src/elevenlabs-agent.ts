@@ -1,6 +1,6 @@
 /**
  * ElevenLabs Conversational AI Agent Handler
- * Uses the @11labs/client SDK for WebRTC voice-to-voice conversations
+ * Uses the @elevenlabs/client SDK for WebRTC voice-to-voice conversations
  */
 
 import type {
@@ -59,7 +59,7 @@ async function loadElevenLabsSDK(): Promise<boolean> {
 
   // Try dynamic import (if bundled with npm)
   try {
-    const module = await import('@11labs/client');
+    const module = await import('@elevenlabs/client');
     Conversation = module.Conversation;
     console.log('[ElevenLabs] Loaded SDK via import');
     return true;
