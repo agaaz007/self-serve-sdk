@@ -175,12 +175,12 @@ class ExitButton implements ExitButtonInstance {
     if (config.interventionAgentId) {
       config.elevenLabsAgentId = config.interventionAgentId;
     }
-    this.useElevenLabsAgent = !!(config.elevenLabsAgentId || config.elevenLabsConversationToken || config.backendUrl);
 
-    // Default backend URL to production
+    // Default backend URL to production (must be set before useElevenLabsAgent check)
     if (!config.backendUrl) {
       config.backendUrl = 'https://api.tranzmitai.com';
     }
+    this.useElevenLabsAgent = !!(config.elevenLabsAgentId || config.elevenLabsConversationToken || config.backendUrl);
     this.apiClient = createApiClient({ apiKey: config.apiKey, baseUrl: config.backendUrl });
 
     // Auto-detect userId if not explicitly provided
