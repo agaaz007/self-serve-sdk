@@ -29,6 +29,9 @@ import { randomUUID, createHmac } from 'crypto';
 
 const app: express.Express = express();
 
+// Trust first proxy (Vercel edge) — must be set BEFORE rate limiter
+app.set('trust proxy', 1);
+
 // Request logging
 app.use(pinoHttp({ logger, autoLogging: { ignore: (req: any) => req.url === '/api/health' } }));
 
@@ -36,7 +39,6 @@ app.use(pinoHttp({ logger, autoLogging: { ignore: (req: any) => req.url === '/ap
 app.use(globalRateLimit);
 
 // CORS
-app.set('trust proxy', true);
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
