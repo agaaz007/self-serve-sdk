@@ -117,7 +117,7 @@ export class ExitButtonApiClient {
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
         throw new ExitButtonError(
-          errorBody.message || `HTTP ${response.status}: ${response.statusText}`,
+          errorBody.message || errorBody.error || `HTTP ${response.status}: ${response.statusText}`,
           errorBody.code || 'API_ERROR',
           response.status
         );

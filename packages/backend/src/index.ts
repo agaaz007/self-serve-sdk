@@ -16,7 +16,7 @@ import { verifyWebhookSignature, resolveSessionId, analyzeTranscript } from './l
 import { InitiateRequestSchema, CompleteRequestSchema, PrefetchRequestSchema } from './lib/validation';
 import { authenticate } from './middleware/auth';
 import { validate } from './middleware/validate';
-import { globalRateLimit, completeRateLimit, prefetchRateLimit, signupRateLimit } from './middleware/rate-limit';
+import { signupRateLimit } from './middleware/rate-limit';
 import { checkQuota } from './middleware/check-quota';
 import { adminAuth } from './middleware/admin-auth';
 import adminRouter from './routes/admin';
@@ -35,8 +35,10 @@ app.set('trust proxy', 1);
 // Request logging
 app.use(pinoHttp({ logger, autoLogging: { ignore: (req: any) => req.url === '/api/health' } }));
 
-// Global rate limit
-app.use(globalRateLimit);
+// NOTE: In-memory rate limiters (express-rate-limit) are unreliable on Vercel
+// serverless — counters don't persist predictably across cold starts.
+// Auth + quota middleware provides sufficient abuse protection.
+// If rate limiting is needed, use a Redis-backed store instead.
 
 // CORS
 app.use(cors({
@@ -152,7 +154,7 @@ app.get('/favicon.png', (_req, res) => {
  * Kicks off PostHog session analysis ahead of time so /initiate is fast.
  * No DB session is created, no signed URL is fetched.
  */
-app.post('/api/exit-session/prefetch', authenticate, prefetchRateLimit, validate(PrefetchRequestSchema), async (req, res) => {
+app.post('/api/exit-session/prefetch', authenticate, validate(PrefetchRequestSchema), async (req, res) => {
   try {
     const { userId, planName, mrr, accountAge, sessionAnalysis } = req.body;
 
@@ -378,7 +380,7 @@ app.post('/api/exit-session/initiate', authenticate, validate(InitiateRequestSch
  *
  * Records the outcome of an exit interview
  */
-app.post('/api/exit-session/complete', authenticate, completeRateLimit, validate(CompleteRequestSchema), async (req, res) => {
+app.post('/api/exit-session/complete', authenticate, validate(CompleteRequestSchema), async (req, res) => {
   try {
     const { sessionId, userId, outcome, acceptedOffer, transcript } = req.body;
 
