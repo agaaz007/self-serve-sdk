@@ -502,34 +502,33 @@ app.post('/api/exit-session/webhook/elevenlabs', async (req, res) => {
     .map((t: any) => `${t.role === 'agent' ? 'Agent' : 'Customer'}: ${t.message}`)
     .join('\n');
 
-  // 3. Respond immediately (async processing below)
-  res.json({ success: true, conversationId });
+  // 3. Process synchronously before responding — Vercel kills the function after res is sent,
+  //    so fire-and-forget would silently drop the Groq analysis.
+  try {
+    const sessionId = await resolveSessionId(db, sessions, payload);
 
-  // 4. Fire-and-forget: resolve session, analyze, update DB
-  (async () => {
-    try {
-      const sessionId = await resolveSessionId(db, sessions, payload);
+    const { outcome, confidence, reason } = await analyzeTranscript(transcriptText, config.groqApiKey);
+    logger.info({ conversationId, outcome, confidence, reason }, 'Groq transcript analysis complete');
 
-      const { outcome, confidence, reason } = await analyzeTranscript(transcriptText, config.groqApiKey);
-      logger.info({ conversationId, outcome, confidence, reason }, 'Groq transcript analysis complete');
+    if (db && sessionId) {
+      const formattedTranscript = transcript.map((t: any) => ({
+        role: t.role === 'agent' ? 'assistant' : 'user',
+        content: t.message,
+        timestamp: new Date().toISOString(),
+      }));
 
-      if (db && sessionId) {
-        const formattedTranscript = transcript.map((t: any) => ({
-          role: t.role === 'agent' ? 'assistant' : 'user',
-          content: t.message,
-          timestamp: new Date().toISOString(),
-        }));
+      await db.update(sessions)
+        .set({ status: outcome, outcome, transcript: formattedTranscript, completedAt: new Date() })
+        .where(eq(sessions.id, sessionId));
 
-        await db.update(sessions)
-          .set({ status: outcome, outcome, transcript: formattedTranscript, completedAt: new Date() })
-          .where(eq(sessions.id, sessionId));
-
-        logger.info({ sessionId, outcome }, 'Session updated from webhook');
-      }
-    } catch (e) {
-      logger.error({ err: e, conversationId }, 'Async webhook processing failed');
+      logger.info({ sessionId, outcome }, 'Session updated from webhook');
     }
-  })();
+
+    res.json({ success: true, conversationId, outcome });
+  } catch (e) {
+    logger.error({ err: e, conversationId }, 'Webhook processing failed');
+    res.json({ success: true, conversationId }); // still 200 so ElevenLabs doesn't retry
+  }
 });
 
 /**
