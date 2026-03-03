@@ -50,6 +50,8 @@ router.post('/', async (req: Request, res: Response) => {
       tier: 'free',
       sessionLimit: 25,
       posthogApiKey,
+      interventionAgentId: 'agent_5701kjr8r1trf3vr7c668m9a3czv',
+      chatAgentId: 'agent_6001kjpvsw2tfm3rxkmhryj5eama',
     }).returning();
 
     // Generate first API key
