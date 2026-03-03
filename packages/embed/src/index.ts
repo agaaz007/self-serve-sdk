@@ -713,6 +713,7 @@ class ExitButton implements ExitButtonInstance {
       onRetry: () => this.start(),
       onReturnHome: () => this.handleReturnHome(),
       onProceedCancelFromDone: () => this.handleProceedCancelFromDone(),
+      onEndCall: () => this.handleEndCall(),
     });
   }
 
@@ -932,6 +933,18 @@ class ExitButton implements ExitButtonInstance {
       const url = (this.config as any).redirectUrl || '/';
       window.location.href = url;
     }
+  }
+
+  /**
+   * Handle "End Call" — disconnect agent and start post-call analysis
+   */
+  private handleEndCall(): void {
+    this.voice?.disconnect();
+    this.voice = null;
+    this.elevenLabsAgent?.disconnect();
+    this.elevenLabsAgent = null;
+    this.setState('done');
+    this.pollForOutcome();
   }
 
   /**
