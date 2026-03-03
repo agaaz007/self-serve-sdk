@@ -120,6 +120,17 @@ export class ElevenLabsAgentHandler {
         return;
       }
 
+      // Request microphone permission BEFORE starting WebRTC session
+      // (per ElevenLabs docs: browser requires user-gesture mic grant before SDK can use it)
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('[ElevenLabs] Microphone permission granted');
+      } catch (micError) {
+        console.error('[ElevenLabs] Microphone permission denied:', micError);
+        this.emitError('Microphone access denied', 'MICROPHONE_DENIED');
+        throw micError;
+      }
+
       // Build context for the agent
       // If PostHog context is provided, use it; otherwise build basic context
       let agentContextPrompt: string | undefined;
