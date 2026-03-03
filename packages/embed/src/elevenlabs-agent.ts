@@ -120,11 +120,15 @@ export class ElevenLabsAgentHandler {
         return;
       }
 
-      // Request microphone permission BEFORE starting WebRTC session
-      // (per ElevenLabs docs: browser requires user-gesture mic grant before SDK can use it)
+      // Request microphone permission BEFORE starting WebRTC session.
+      // The SDK calls getUserMedia internally, but we pre-request here to ensure
+      // the browser permission grant happens in user-gesture context.
+      // IMPORTANT: Stop the temp stream immediately so it doesn't conflict with
+      // the SDK's internal mic acquisition via LiveKit.
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        console.log('[ElevenLabs] Microphone permission granted');
+        const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        tempStream.getTracks().forEach(track => track.stop());
+        console.log('[ElevenLabs] Microphone permission granted (temp stream released)');
       } catch (micError) {
         console.error('[ElevenLabs] Microphone permission denied:', micError);
         this.emitError('Microphone access denied', 'MICROPHONE_DENIED');
