@@ -23,7 +23,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@elevenlabs/client": "^0.15.0",
+    "@11labs/client": "0.2.0",
     "@tranzmit/exit-button-core": "workspace:*"
   },
   "devDependencies": {

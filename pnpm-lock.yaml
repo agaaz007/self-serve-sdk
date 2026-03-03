@@ -115,9 +115,9 @@ importers:
 
   packages/embed:
     dependencies:
-      '@elevenlabs/client':
-        specifier: ^0.15.0
-        version: 0.15.0(@types/dom-mediacapture-record@1.0.22)
+      '@11labs/client':
+        specifier: 0.2.0
+        version: 0.2.0(@types/dom-mediacapture-record@1.0.22)
       '@tranzmit/exit-button-core':
         specifier: workspace:*
         version: link:../core
@@ -130,6 +130,15 @@ importers:
         version: 5.9.3
 
 packages:
+
+  /@11labs/client@0.2.0(@types/dom-mediacapture-record@1.0.22):
+    resolution: {integrity: sha512-GBplAV4WDbcoThsIzdSDPN3xbcitK0ZZ4iJfJZKfltqvgvS6Uw8GZxHwVgiPwnQoA3uosYyY3L9TuPwmel18xQ==}
+    deprecated: This package is no longer maintained. Please use @elevenlabs/client for the latest version
+    dependencies:
+      livekit-client: 2.15.16(@types/dom-mediacapture-record@1.0.22)
+    transitivePeerDependencies:
+      - '@types/dom-mediacapture-record'
+    dev: false
 
   /@ampproject/remapping@2.3.0:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -177,19 +186,6 @@ packages:
   /@drizzle-team/brocli@0.10.2:
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
     dev: true
-
-  /@elevenlabs/client@0.15.0(@types/dom-mediacapture-record@1.0.22):
-    resolution: {integrity: sha512-Fxoq+nZj6U9ykeQx07UGMFumw1hxE9Cr4O3IX3FfMjl3ZMRVMPfv8UOuqdoWMrLG6gZoIBeimfdc61St6z4JpQ==}
-    dependencies:
-      '@elevenlabs/types': 0.6.0
-      livekit-client: 2.15.16(@types/dom-mediacapture-record@1.0.22)
-    transitivePeerDependencies:
-      - '@types/dom-mediacapture-record'
-    dev: false
-
-  /@elevenlabs/types@0.6.0:
-    resolution: {integrity: sha512-2FihOiGf+KlTH1EYQoYsvnhSCMMaHZMDSXMYI25NUtv0NmWi86bB9Hp4BAHbNeEkCksPXKbPiX3b6KgP2JIg2g==}
-    dev: false
 
   /@esbuild-kit/core-utils@3.3.2:
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
