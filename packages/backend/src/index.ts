@@ -16,7 +16,7 @@ import { verifyWebhookSignature, resolveSessionId, analyzeTranscript } from './l
 import { InitiateRequestSchema, CompleteRequestSchema, PrefetchRequestSchema } from './lib/validation';
 import { authenticate } from './middleware/auth';
 import { validate } from './middleware/validate';
-import { globalRateLimit, initiateRateLimit, completeRateLimit, prefetchRateLimit, signupRateLimit } from './middleware/rate-limit';
+import { globalRateLimit, completeRateLimit, prefetchRateLimit, signupRateLimit } from './middleware/rate-limit';
 import { checkQuota } from './middleware/check-quota';
 import { adminAuth } from './middleware/admin-auth';
 import adminRouter from './routes/admin';
@@ -199,7 +199,7 @@ app.post('/api/exit-session/prefetch', authenticate, prefetchRateLimit, validate
  *
  * Runs PostHog analysis + AI + signed URL all in parallel where possible.
  */
-app.post('/api/exit-session/initiate', authenticate, initiateRateLimit, validate(InitiateRequestSchema), checkQuota, async (req, res) => {
+app.post('/api/exit-session/initiate', authenticate, validate(InitiateRequestSchema), checkQuota, async (req, res) => {
   try {
     const { userId: rawUserId, planName, mrr, accountAge, sessionAnalysis } = req.body;
     const userId = rawUserId || `anon_${Date.now()}`;
