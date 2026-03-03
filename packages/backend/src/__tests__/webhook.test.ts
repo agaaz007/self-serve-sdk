@@ -2,8 +2,8 @@
  * Webhook endpoint tests
  *
  * Tests the ElevenLabs post-call webhook handler including:
- * - Immediate 200 response with conversationId
- * - Async background processing (Groq analysis, session lookup, DB update)
+ * - 200 response with conversationId
+ * - Synchronous processing (Groq analysis, session lookup, DB update)
  * - Signature verification
  */
 
@@ -134,7 +134,7 @@ for (const listener of originalListeners.unhandledRejection) {
 
 // ============ Helpers ============
 
-/** Small delay to let fire-and-forget async processing complete */
+/** Small delay helper for consistency across tests */
 function tick(ms = 50): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -187,7 +187,7 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
     mockDbUpdate.mockReturnValue({ set: mockUpdateSet });
   });
 
-  it('returns 200 immediately with conversationId (async processing)', async () => {
+  it('returns 200 with conversationId and runs Groq analysis', async () => {
     const res = await request(app)
       .post('/api/exit-session/webhook/elevenlabs')
       .send(webhookPayload());
@@ -196,8 +196,6 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
     expect(res.body).toHaveProperty('success', true);
     expect(res.body).toHaveProperty('conversationId', 'conv_test_123');
 
-    // Wait for async processing to complete, then verify Groq was called
-    await tick();
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.groq.com/openai/v1/chat/completions',
       expect.objectContaining({
@@ -209,7 +207,7 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
     );
   });
 
-  it('processes transcript analysis asynchronously with Groq', async () => {
+  it('returns outcome from transcript analysis', async () => {
     mockFetch.mockResolvedValue(groqResponse('retained'));
 
     const res = await request(app)
@@ -217,15 +215,11 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
       .send(webhookPayload());
 
     expect(res.status).toBe(200);
-    // Response does not include outcome (async processing)
-    expect(res.body).not.toHaveProperty('outcome');
-
-    // Wait for async processing
-    await tick();
+    expect(res.body).toHaveProperty('outcome', 'retained');
     expect(mockFetch).toHaveBeenCalled();
   });
 
-  it('handles Groq API failure gracefully in async processing', async () => {
+  it('handles Groq API failure gracefully', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 500,
@@ -239,7 +233,6 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
 
-    // Wait for async processing — should not throw
     await tick();
   });
 
@@ -255,9 +248,6 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
       .send(payload);
 
     expect(res.status).toBe(200);
-
-    // Wait for async processing
-    await tick();
 
     // Should update the session with the ID from dynamic vars
     expect(mockDbUpdate).toHaveBeenCalled();
@@ -276,9 +266,6 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
       .send(payload);
 
     expect(res.status).toBe(200);
-
-    // Wait for async processing
-    await tick();
 
     // Should have done the conversation_id lookup
     expect(mockDbSelect).toHaveBeenCalled();
@@ -306,9 +293,6 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
 
     expect(res.status).toBe(200);
 
-    // Wait for async processing
-    await tick();
-
     // Should have called select twice (conversation_id + agent_id fallback)
     expect(mockDbSelect).toHaveBeenCalledTimes(2);
     // Should have updated the session found via agent_id fallback
@@ -328,9 +312,6 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
 
-    // Wait for async processing
-    await tick();
-
     // Should have tried both lookups
     expect(mockDbSelect).toHaveBeenCalledTimes(2);
     // Should NOT have called update (no session found)
@@ -344,6 +325,17 @@ describe('POST /api/exit-session/webhook/elevenlabs', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
+  });
+
+  it('ignores non-transcription webhook events', async () => {
+    const res = await request(app)
+      .post('/api/exit-session/webhook/elevenlabs')
+      .send(webhookPayload({ transcript: undefined, full_audio: { format: 'wav' } }, { type: 'post_call_audio' }));
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('success', true);
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockDbUpdate).not.toHaveBeenCalled();
   });
 });
 
