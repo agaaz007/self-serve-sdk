@@ -272,6 +272,7 @@ router.get('/tenants/:tenantId/usage', async (req: Request, res: Response) => {
       name: tenants.name,
       tier: tenants.tier,
       sessionLimit: tenants.sessionLimit,
+      sessionsUsed: tenants.sessionsUsed,
     })
       .from(tenants)
       .where(eq(tenants.id, tenantId))
@@ -299,6 +300,7 @@ router.get('/tenants/:tenantId/usage', async (req: Request, res: Response) => {
       sessionCount: usageData.sessionCount,
       voiceMinutes: usageData.voiceMinutes,
       sessionLimit: tenant.sessionLimit,
+      sessionsUsed: tenant.sessionsUsed,
       remaining: tenant.sessionLimit > 0
         ? Math.max(0, tenant.sessionLimit - usageData.sessionCount)
         : null, // null = unlimited

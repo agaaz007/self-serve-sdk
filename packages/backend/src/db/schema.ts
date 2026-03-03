@@ -31,6 +31,7 @@ export const tenants = pgTable('tenants', {
   chatAgentId: text('chat_agent_id'),
   tier: varchar('tier', { length: 20 }).notNull().default('free'),
   sessionLimit: integer('session_limit').notNull().default(25),
+  sessionsUsed: integer('sessions_used').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow(),
 });
 

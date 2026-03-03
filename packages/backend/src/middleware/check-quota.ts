@@ -13,10 +13,10 @@ export function checkQuota(req: Request, res: Response, next: NextFunction): voi
     return;
   }
 
-  const { sessionLimit, tier } = tenant;
+  const { sessionLimit } = tenant;
 
-  // No limit for paid tiers (or if limit is 0 meaning unlimited)
-  if (tier !== 'free' || !sessionLimit) {
+  // No limit if sessionLimit is 0 (unlimited)
+  if (!sessionLimit) {
     next();
     return;
   }
@@ -28,11 +28,10 @@ export function checkQuota(req: Request, res: Response, next: NextFunction): voi
         next();
       } else {
         res.status(429).json({
-          error: 'Quota exceeded',
+          error: 'You have run out of credits. Kindly renew by emailing contact@trazmit.com',
           code: 'QUOTA_EXCEEDED',
           limit: sessionLimit,
-          tier,
-          upgradeUrl: 'https://tranzmitai.com/pricing',
+          used: sessionLimit,
         });
       }
     })

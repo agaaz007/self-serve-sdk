@@ -348,6 +348,10 @@ app.post('/api/exit-session/initiate', authenticate, validate(InitiateRequestSch
                 session_count = usage.session_count + 1,
                 updated_at = NOW()`
         );
+        // Also increment sessions_used on the tenants table for easy tracking
+        await db.execute(
+          sql`UPDATE tenants SET sessions_used = sessions_used + 1 WHERE id = ${req.tenant.id}`
+        );
       } catch (e) {
         logger.warn({ err: e }, 'Failed to increment usage counter (non-fatal)');
       }
@@ -490,16 +494,49 @@ app.post('/api/exit-session/webhook/elevenlabs', async (req, res) => {
     return res.status(401).json({ error: sigError });
   }
 
-  // 2. Parse payload and format transcript
-  const payload = req.body;
+  // 2. Parse payload and normalize transcript
+  const payload = req.body ?? {};
   const data = payload.data || payload;
-  const transcript = data.transcript || [];
-  const conversationId = data.conversation_id;
+  const eventType = typeof payload.type === 'string' ? payload.type : 'unknown';
+  const conversationId = typeof data.conversation_id === 'string' ? data.conversation_id : undefined;
+  const rawTranscript = Array.isArray(data.transcript) ? data.transcript : [];
 
-  logger.info({ conversationId, eventType: payload.type }, 'ElevenLabs post-call webhook received');
+  type NormalizedTranscriptEntry = { role: 'assistant' | 'user'; content: string };
+  const normalizedTranscript: NormalizedTranscriptEntry[] = rawTranscript
+    .map((t: any): NormalizedTranscriptEntry => {
+      const rawRole = typeof t?.role === 'string' ? t.role.toLowerCase() : 'user';
+      const role = rawRole === 'agent' || rawRole === 'assistant' ? 'assistant' : 'user';
+      const content = [t?.message, t?.text, t?.content, t?.transcript]
+        .find((v) => typeof v === 'string' && v.trim().length > 0) as string | undefined;
+      return { role, content: content?.trim() || '' };
+    })
+    .filter((t: NormalizedTranscriptEntry) => t.content.length > 0);
 
-  const transcriptText = transcript
-    .map((t: any) => `${t.role === 'agent' ? 'Agent' : 'Customer'}: ${t.message}`)
+  logger.info(
+    {
+      conversationId,
+      eventType,
+      rawTranscriptTurns: rawTranscript.length,
+      transcriptTurns: normalizedTranscript.length,
+    },
+    'ElevenLabs post-call webhook received'
+  );
+
+  // Only analyze transcription events. Some webhook types (for example post-call audio)
+  // do not include transcript text and should not overwrite session outcome.
+  const shouldAnalyze = eventType === 'post_call_transcription' || (eventType === 'unknown' && normalizedTranscript.length > 0);
+  if (!shouldAnalyze) {
+    logger.info({ conversationId, eventType }, 'Ignoring non-transcription webhook event');
+    return res.json({ success: true, conversationId });
+  }
+
+  if (normalizedTranscript.length === 0) {
+    logger.warn({ conversationId, eventType }, 'Skipping Groq analysis: empty transcript');
+    return res.json({ success: true, conversationId });
+  }
+
+  const transcriptText = normalizedTranscript
+    .map((t: NormalizedTranscriptEntry) => `${t.role === 'assistant' ? 'Agent' : 'Customer'}: ${t.content}`)
     .join('\n');
 
   // 3. Process synchronously before responding — Vercel kills the function after res is sent,
@@ -511,14 +548,25 @@ app.post('/api/exit-session/webhook/elevenlabs', async (req, res) => {
     logger.info({ conversationId, outcome, confidence, reason }, 'Groq transcript analysis complete');
 
     if (db && sessionId) {
-      const formattedTranscript = transcript.map((t: any) => ({
-        role: t.role === 'agent' ? 'assistant' : 'user',
-        content: t.message,
+      const formattedTranscript = normalizedTranscript.map((t: NormalizedTranscriptEntry) => ({
+        role: t.role,
+        content: t.content,
         timestamp: new Date().toISOString(),
       }));
 
       await db.update(sessions)
-        .set({ status: outcome, outcome, transcript: formattedTranscript, completedAt: new Date() })
+        .set({
+          status: outcome,
+          outcome,
+          transcript: formattedTranscript,
+          aiAnalysis: {
+            provider: 'groq',
+            confidence,
+            reason,
+            source: 'elevenlabs_post_call_transcription',
+          },
+          completedAt: new Date(),
+        })
         .where(eq(sessions.id, sessionId));
 
       logger.info({ sessionId, outcome }, 'Session updated from webhook');
