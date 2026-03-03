@@ -142,18 +142,31 @@ export class ElevenLabsAgentHandler {
         }
       }
 
-      const config: any = {
-        agentId: this.options.agentId,
-        connectionType: 'webrtc',
+      // Build dynamic variables
+      const dynamicVars: Record<string, string> = { ...this.options.dynamicVariables };
+      if (!this.options.dynamicVariables && agentContextPrompt) {
+        dynamicVars.session_insights = agentContextPrompt;
+      }
 
-        onConnect: () => {
-          console.log('[ElevenLabs] Connected via WebRTC');
+      // Session config: agentId and conversationToken are mutually exclusive in v0.15+
+      const sessionConfig: any = this.options.conversationToken
+        ? { conversationToken: this.options.conversationToken }
+        : { agentId: this.options.agentId, connectionType: 'webrtc' as const };
+
+      const config: any = {
+        ...sessionConfig,
+
+        onConnect: ({ conversationId }: { conversationId: string }) => {
+          console.log('[ElevenLabs] Connected via WebRTC, conversationId:', conversationId);
           this.conversationStarted = true;
           this.updateState({ isConnected: true });
+          if (conversationId) {
+            this.options.onConversationId?.(conversationId);
+          }
         },
 
-        onDisconnect: () => {
-          console.log('[ElevenLabs] Disconnected');
+        onDisconnect: (details: any) => {
+          console.log('[ElevenLabs] Disconnected, reason:', details?.reason);
           this.updateState({ isConnected: false, isSpeaking: false, isListening: false });
           if (!this.interviewCompleted) {
             if (this.conversationStarted) {
@@ -168,62 +181,43 @@ export class ElevenLabsAgentHandler {
           }
         },
 
-        onMessage: (message: any) => {
-          console.log('[ElevenLabs] Message:', message);
-          if (message.source !== 'user') {
+        onMessage: (msg: any) => {
+          console.log('[ElevenLabs] Message:', msg);
+          const role = msg.role || (msg.source === 'user' ? 'user' : 'agent');
+          if (role !== 'user') {
             this.conversationStarted = true;
           }
-          if (message.message && message.isFinal !== false) {
+          if (msg.message) {
             const entry: TranscriptEntry = {
-              role: message.source === 'user' ? 'user' : 'assistant',
-              content: message.message,
+              role: role === 'user' ? 'user' : 'assistant',
+              content: msg.message,
               timestamp: new Date().toISOString(),
             };
             this.options.onTranscript?.(entry);
           }
         },
 
-        onModeChange: (mode: any) => {
+        onModeChange: ({ mode }: { mode: string }) => {
           console.log('[ElevenLabs] Mode change:', mode);
           this.updateState({
-            isSpeaking: mode.mode === 'speaking',
-            isListening: mode.mode === 'listening',
+            isSpeaking: mode === 'speaking',
+            isListening: mode === 'listening',
           });
         },
 
-        onError: (error: any) => {
-          console.error('[ElevenLabs] Error:', error);
-          this.emitError(error.message || 'ElevenLabs error', 'ELEVENLABS_ERROR');
+        onError: (message: string, context?: any) => {
+          console.error('[ElevenLabs] Error:', message, context);
+          this.emitError(message || 'ElevenLabs error', 'ELEVENLABS_ERROR');
         },
       };
-
-      // Add conversation token for WebRTC (private agents)
-      if (this.options.conversationToken) {
-        config.conversationToken = this.options.conversationToken;
-      }
-
-      // Pass dynamic variables (without overriding the system prompt)
-      const dynamicVars: Record<string, string> = { ...this.options.dynamicVariables };
-
-      // If no dynamic variables but we have context, pass it as session_insights
-      if (!this.options.dynamicVariables && agentContextPrompt) {
-        dynamicVars.session_insights = agentContextPrompt;
-      }
 
       if (Object.keys(dynamicVars).length > 0) {
         config.dynamicVariables = dynamicVars;
       }
 
-      console.log('[ElevenLabs] Starting WebRTC session with config:', JSON.stringify(config, null, 2));
+      console.log('[ElevenLabs] Starting WebRTC session, token:', this.options.conversationToken ? 'yes' : 'none');
       this.conversation = await Conversation.startSession(config);
       console.log('[ElevenLabs] WebRTC session started successfully');
-
-      // Extract conversation ID from SDK return value
-      const conversationId = this.conversation?.getId?.();
-      if (conversationId) {
-        console.log('[ElevenLabs] conversation_id (from SDK):', conversationId);
-        this.options.onConversationId?.(conversationId);
-      }
 
     } catch (error) {
       console.error('[ElevenLabs] Connection error:', error);
@@ -586,8 +580,8 @@ export class ElevenLabsAgentHandler {
    * Send a text message (for text fallback mode)
    */
   sendText(text: string): void {
-    if (this.conversation?.sendMessage) {
-      this.conversation.sendMessage({ message: text });
+    if (this.conversation?.sendUserMessage) {
+      this.conversation.sendUserMessage(text);
     } else if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type: 'user_message', text }));
     }
