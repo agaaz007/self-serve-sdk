@@ -5,17 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tranzmit - Get Your API Key</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
+    :root {
+      --bg: #0c0c0c;
+      --surface: #111111;
+      --surface-raised: #161616;
+      --border: #1e1e1e;
+      --border-active: #2d2d2d;
+      --text: #c9d1d9;
+      --text-muted: #484f58;
+      --text-subtle: #6e7681;
+      --green: #3fb950;
+      --green-dim: rgba(63, 185, 80, 0.15);
+      --green-glow: rgba(63, 185, 80, 0.4);
+      --cyan: #58a6ff;
+      --cyan-dim: rgba(88, 166, 255, 0.12);
+      --yellow: #d29922;
+      --yellow-dim: rgba(210, 153, 34, 0.12);
+      --red: #f85149;
+      --red-dim: rgba(248, 81, 73, 0.12);
+      --purple: #bc8cff;
+      --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-        Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-      background-color: #0a0a0a;
-      color: #e5e5e5;
+      font-family: var(--mono);
+      background-color: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -23,96 +46,256 @@
       padding: 24px;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      position: relative;
+      overflow: hidden;
     }
 
-    .card {
-      background-color: #141414;
-      border: 1px solid #2a2a2a;
-      border-radius: 16px;
-      padding: 40px;
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(63, 185, 80, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(63, 185, 80, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .terminal {
+      position: relative;
+      z-index: 2;
       width: 100%;
-      max-width: 480px;
-      box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.03),
-        0 4px 6px -1px rgba(0, 0, 0, 0.3),
-        0 20px 40px -8px rgba(0, 0, 0, 0.5);
+      max-width: 520px;
     }
 
-    .header {
+    /* Terminal window chrome */
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-active);
+    }
+
+    .terminal-dot.red { background: #f85149; }
+    .terminal-dot.yellow { background: #d29922; }
+    .terminal-dot.green { background: #3fb950; }
+
+    .terminal-title {
+      flex: 1;
       text-align: center;
-      margin-bottom: 36px;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .terminal-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      padding: 32px;
+      position: relative;
+    }
+
+    /* Corner glow */
+    .terminal-body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(63, 185, 80, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Header section */
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .header-prompt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .prompt-symbol {
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .prompt-path {
+      color: var(--cyan);
+      font-size: 13px;
     }
 
     .logo {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 700;
       letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 8px;
+      color: #fff;
+      margin-bottom: 4px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .logo .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 28px;
+      background: var(--green);
+      margin-left: 4px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
 
     .subtitle {
-      color: #666;
-      font-size: 15px;
+      color: var(--text-subtle);
+      font-size: 13px;
       line-height: 1.5;
     }
 
+    .subtitle .flag {
+      color: var(--yellow);
+    }
+
+    /* Form styles */
     .form-group {
       margin-bottom: 20px;
+      position: relative;
     }
 
     .form-group label {
-      display: block;
-      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
       font-weight: 500;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      color: var(--text-muted);
       margin-bottom: 8px;
+      font-family: var(--mono);
+    }
+
+    .label-prefix {
+      color: var(--purple);
+      user-select: none;
+    }
+
+    .label-type {
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.6;
     }
 
     .form-group input {
       width: 100%;
-      padding: 12px 16px;
-      background-color: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 15px;
-      font-family: inherit;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      padding: 11px 14px;
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--green);
+      font-size: 14px;
+      font-family: var(--mono);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
       outline: none;
     }
 
     .form-group input::placeholder {
-      color: #555;
+      color: var(--text-muted);
+      opacity: 0.5;
     }
 
     .form-group input:focus {
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+      border-color: #2d2d2d;
+      box-shadow: 0 0 0 3px var(--green-dim), inset 0 0 0 1px rgba(63, 185, 80, 0.1);
+    }
+
+    .optional-tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--border);
+      color: var(--text-muted);
+      margin-left: auto;
+      font-weight: 400;
     }
 
     .submit-btn {
       width: 100%;
-      height: 48px;
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
+      height: 44px;
+      background: transparent;
+      color: var(--green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 6px;
+      font-size: 14px;
       font-weight: 600;
-      font-family: inherit;
+      font-family: var(--mono);
       cursor: pointer;
-      transition: opacity 0.2s ease, transform 0.1s ease, filter 0.2s ease;
+      transition: all 0.15s ease;
       margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--green-dim);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .submit-btn:hover:not(:disabled)::before {
+      opacity: 1;
     }
 
     .submit-btn:hover:not(:disabled) {
-      filter: brightness(1.15);
+      border-color: rgba(63, 185, 80, 0.5);
+      box-shadow: 0 0 20px rgba(63, 185, 80, 0.1);
     }
 
     .submit-btn:active:not(:disabled) {
@@ -120,20 +303,31 @@
     }
 
     .submit-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.4;
       cursor: not-allowed;
+    }
+
+    .submit-btn span {
+      position: relative;
+      z-index: 1;
     }
 
     .error-banner {
       display: none;
-      background-color: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-top: 16px;
-      color: #f87171;
-      font-size: 14px;
+      background-color: var(--red-dim);
+      border: 1px solid rgba(248, 81, 73, 0.2);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 14px;
+      color: var(--red);
+      font-size: 13px;
       line-height: 1.5;
+      font-family: var(--mono);
+    }
+
+    .error-banner::before {
+      content: 'stderr: ';
+      opacity: 0.5;
     }
 
     .error-banner.visible {
@@ -143,54 +337,91 @@
     /* Success state */
     .success-container {
       display: none;
-      text-align: center;
     }
 
     .success-container.visible {
       display: block;
     }
 
-    .checkmark-icon {
-      width: 64px;
-      height: 64px;
-      margin: 0 auto 20px;
-      background: rgba(34, 197, 94, 0.1);
-      border-radius: 50%;
+    .success-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-    }
-
-    .checkmark-icon svg {
-      width: 32px;
-      height: 32px;
-      color: #22c55e;
-    }
-
-    .success-heading {
-      font-size: 24px;
-      font-weight: 700;
-      color: #fff;
+      gap: 10px;
       margin-bottom: 24px;
     }
 
-    .api-key-box {
-      background-color: #1a1a1a;
-      border: 1px solid #333;
+    .success-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--green-dim);
+      border: 1px solid rgba(63, 185, 80, 0.2);
       border-radius: 8px;
-      padding: 14px 16px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .success-icon svg {
+      width: 18px;
+      height: 18px;
+      color: var(--green);
+    }
+
+    .success-text h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      font-family: var(--mono);
+    }
+
+    .success-text p {
+      font-size: 12px;
+      color: var(--text-subtle);
+      font-family: var(--mono);
+    }
+
+    .key-section {
       margin-bottom: 16px;
+    }
+
+    .key-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .key-label .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .api-key-box {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .api-key-value {
       flex: 1;
-      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono',
-        'Consolas', 'Monaco', monospace;
-      font-size: 14px;
-      color: #e5e5e5;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--green);
       word-break: break-all;
       text-align: left;
       line-height: 1.5;
@@ -198,162 +429,226 @@
 
     .copy-btn {
       flex-shrink: 0;
-      background-color: #2a2a2a;
-      border: 1px solid #3a3a3a;
-      border-radius: 6px;
-      color: #ccc;
-      font-size: 13px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-subtle);
+      font-size: 12px;
       font-weight: 500;
-      font-family: inherit;
-      padding: 6px 14px;
+      font-family: var(--mono);
+      padding: 5px 12px;
       cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      transition: all 0.15s ease;
       white-space: nowrap;
     }
 
     .copy-btn:hover {
-      background-color: #333;
-      color: #fff;
+      border-color: var(--border-active);
+      color: var(--text);
+      background: var(--surface-raised);
     }
 
     .copy-btn.copied {
-      background-color: rgba(34, 197, 94, 0.15);
-      border-color: rgba(34, 197, 94, 0.3);
-      color: #22c55e;
+      background: var(--green-dim);
+      border-color: rgba(63, 185, 80, 0.2);
+      color: var(--green);
     }
 
     .warning-banner {
-      background-color: rgba(234, 179, 8, 0.08);
-      border: 1px solid rgba(234, 179, 8, 0.25);
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-bottom: 28px;
-      color: #eab308;
-      font-size: 13px;
+      background-color: var(--yellow-dim);
+      border: 1px solid rgba(210, 153, 34, 0.15);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      color: var(--yellow);
+      font-size: 12px;
       line-height: 1.5;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 10px;
+      font-family: var(--mono);
     }
 
     .warning-banner svg {
       flex-shrink: 0;
-      width: 18px;
-      height: 18px;
-      margin-top: 1px;
+      width: 16px;
+      height: 16px;
     }
 
     .quickstart-section {
       text-align: left;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
 
     .quickstart-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #999;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quickstart-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
     }
 
     .code-block {
-      background-color: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 16px;
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
       position: relative;
     }
 
     .code-block pre {
       margin: 0;
-      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono',
-        'Consolas', 'Monaco', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #a3a3a3;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-subtle);
       white-space: pre-wrap;
       word-break: break-all;
     }
 
     .code-block .highlight {
-      color: #7c3aed;
+      color: var(--red);
     }
 
     .code-block .string {
-      color: #22c55e;
+      color: var(--green);
     }
 
     .code-block .attr {
-      color: #eab308;
+      color: var(--cyan);
     }
 
     .copy-code-btn {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: #2a2a2a;
-      border: 1px solid #3a3a3a;
-      border-radius: 5px;
-      color: #888;
-      font-size: 12px;
-      font-family: inherit;
-      padding: 4px 10px;
+      top: 8px;
+      right: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: var(--mono);
+      padding: 3px 8px;
       cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      transition: all 0.15s ease;
     }
 
     .copy-code-btn:hover {
-      background-color: #333;
-      color: #fff;
+      border-color: var(--border-active);
+      color: var(--text);
     }
 
     .copy-code-btn.copied {
-      background-color: rgba(34, 197, 94, 0.15);
-      border-color: rgba(34, 197, 94, 0.3);
-      color: #22c55e;
+      background: var(--green-dim);
+      border-color: rgba(63, 185, 80, 0.2);
+      color: var(--green);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
     }
 
     .dashboard-link {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      color: #7c3aed;
-      font-size: 15px;
+      color: var(--text-subtle);
+      font-size: 13px;
       font-weight: 500;
+      font-family: var(--mono);
       text-decoration: none;
-      transition: color 0.2s ease;
+      transition: color 0.15s ease;
     }
 
     .dashboard-link:hover {
-      color: #a78bfa;
+      color: var(--green);
     }
 
     .dashboard-link svg {
-      width: 16px;
-      height: 16px;
-      transition: transform 0.2s ease;
+      width: 14px;
+      height: 14px;
+      transition: transform 0.15s ease;
     }
 
     .dashboard-link:hover svg {
       transform: translateX(3px);
     }
 
-    .divider {
-      height: 1px;
-      background: #2a2a2a;
-      margin: 24px 0;
+    /* Status line at bottom of terminal */
+    .status-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
-    @media (max-width: 520px) {
-      .card {
-        padding: 28px 20px;
-        border-radius: 12px;
+    .status-line .mode {
+      color: var(--bg);
+      background: var(--green);
+      padding: 1px 8px;
+      border-radius: 2px;
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .status-line .info {
+      display: flex;
+      gap: 16px;
+    }
+
+    .status-line .info span {
+      opacity: 0.6;
+    }
+
+    /* Floating decorations */
+    .deco {
+      position: fixed;
+      font-family: var(--mono);
+      color: rgba(63, 185, 80, 0.06);
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 0;
+      white-space: pre;
+      line-height: 1.6;
+    }
+
+    .deco-left {
+      top: 15%;
+      left: 3%;
+    }
+
+    .deco-right {
+      bottom: 15%;
+      right: 3%;
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 12px; }
+
+      .terminal-body {
+        padding: 24px 18px;
       }
 
-      .logo {
-        font-size: 28px;
-      }
+      .logo { font-size: 24px; }
 
       .api-key-box {
         flex-direction: column;
@@ -367,82 +662,163 @@
       .copy-btn {
         width: 100%;
         text-align: center;
-        padding: 10px;
+        padding: 8px;
       }
+
+      .deco { display: none; }
+
+      .status-line .info { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <div class="logo">Tranzmit</div>
-      <div class="subtitle">Get your Exit Button SDK API key</div>
+  <!-- Background decorations -->
+  <div class="deco deco-left">const init = async () => {
+  await db.connect();
+  await redis.ping();
+  server.listen(3000);
+};
+
+// TODO: add auth
+module.exports = {
+  init,
+  shutdown,
+};</div>
+
+  <div class="deco deco-right">export interface Config {
+  apiKey: string;
+  endpoint: string;
+  retries?: number;
+}
+
+type Status =
+  | 'active'
+  | 'pending'
+  | 'revoked';</div>
+
+  <div class="terminal">
+    <!-- Terminal title bar -->
+    <div class="terminal-bar">
+      <div class="terminal-dots">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+      </div>
+      <div class="terminal-title">tranzmit &mdash; signup</div>
+      <div style="width: 50px;"></div>
     </div>
 
-    <div id="formContainer">
-      <form id="signupForm" novalidate>
-        <div class="form-group">
-          <label for="companyName">Company Name</label>
-          <input type="text" id="companyName" name="companyName" placeholder="Acme Inc." required>
+    <!-- Terminal body -->
+    <div class="terminal-body">
+      <div class="header">
+        <div class="header-prompt">
+          <span class="prompt-symbol">~</span>
+          <span class="prompt-path">~/tranzmit/signup</span>
+        </div>
+        <div class="logo">tranzmit<span class="cursor"></span></div>
+        <div class="subtitle">$ get-api-key <span class="flag">--interactive</span></div>
+      </div>
+
+      <div id="formContainer">
+        <form id="signupForm" novalidate>
+          <div class="form-group">
+            <label for="companyName">
+              <span class="label-prefix">const</span> company_name
+              <span class="label-type">: string</span>
+            </label>
+            <input type="text" id="companyName" name="companyName" placeholder="Acme Inc." required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">
+              <span class="label-prefix">const</span> email
+              <span class="label-type">: string</span>
+            </label>
+            <input type="email" id="email" name="email" placeholder="you@company.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">
+              <span class="label-prefix">const</span> phone
+              <span class="label-type">: string</span>
+              <span class="optional-tag">optional</span>
+            </label>
+            <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000">
+          </div>
+
+          <div class="form-group">
+            <label for="posthogApiKey">
+              <span class="label-prefix">const</span> posthog_key
+              <span class="label-type">: string</span>
+              <span class="optional-tag">optional</span>
+            </label>
+            <input type="text" id="posthogApiKey" name="posthogApiKey" placeholder="phc_...">
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn"><span>$ generate-key</span></button>
+
+          <div class="error-banner" id="errorBanner"></div>
+        </form>
+      </div>
+
+      <div class="success-container" id="successContainer">
+        <div class="success-header">
+          <div class="success-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
+          <div class="success-text">
+            <h2>Key generated</h2>
+            <p>exit code 0 &mdash; success</p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" placeholder="you@company.com" required>
+        <div class="key-section">
+          <div class="key-label">
+            <span class="dot"></span>
+            API_KEY
+          </div>
+          <div class="api-key-box">
+            <span class="api-key-value" id="apiKeyValue"></span>
+            <button class="copy-btn" id="copyKeyBtn">cp</button>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="phone">Phone Number</label>
-          <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000">
+        <div class="warning-banner">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <span>Save this key now. It won't be shown again.</span>
         </div>
 
-        <div class="form-group">
-          <label for="posthogApiKey">PostHog API Key</label>
-          <input type="text" id="posthogApiKey" name="posthogApiKey" placeholder="phc_...">
+        <div class="quickstart-section">
+          <div class="quickstart-title">quickstart</div>
+          <div class="code-block">
+            <button class="copy-code-btn" id="copyCodeBtn">cp</button>
+            <pre id="codeSnippet"></pre>
+          </div>
         </div>
 
-        <button type="submit" class="submit-btn" id="submitBtn">Get API Key</button>
+        <div class="divider"></div>
 
-        <div class="error-banner" id="errorBanner"></div>
-      </form>
+        <a href="#" class="dashboard-link">
+          cd ~/dashboard
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </a>
+      </div>
     </div>
 
-    <div class="success-container" id="successContainer">
-      <div class="checkmark-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-        </svg>
+    <!-- Status line -->
+    <div class="status-line">
+      <span class="mode">NORMAL</span>
+      <div class="info">
+        <span>utf-8</span>
+        <span>html</span>
+        <span>ln 1, col 1</span>
       </div>
-      <h2 class="success-heading">You're all set!</h2>
-
-      <div class="api-key-box">
-        <span class="api-key-value" id="apiKeyValue"></span>
-        <button class="copy-btn" id="copyKeyBtn">Copy</button>
-      </div>
-
-      <div class="warning-banner">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-        </svg>
-        <span>Save this key now. It will not be shown again.</span>
-      </div>
-
-      <div class="quickstart-section">
-        <div class="quickstart-title">Quick Start</div>
-        <div class="code-block">
-          <button class="copy-code-btn" id="copyCodeBtn">Copy</button>
-          <pre id="codeSnippet"></pre>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <a href="#" class="dashboard-link">
-        Go to Dashboard
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-        </svg>
-      </a>
     </div>
   </div>
 
@@ -465,7 +841,7 @@
         errorBanner.textContent = '';
 
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating your account\u2026';
+        submitBtn.querySelector('span').textContent = '$ generating...';
 
         var data = {
           companyName: document.getElementById('companyName').value.trim(),
@@ -507,17 +883,17 @@
           errorBanner.textContent = err.message;
           errorBanner.classList.add('visible');
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Get API Key';
+          submitBtn.querySelector('span').textContent = '$ generate-key';
         });
       });
 
       copyKeyBtn.addEventListener('click', function() {
         var key = apiKeyValue.textContent;
         navigator.clipboard.writeText(key).then(function() {
-          copyKeyBtn.textContent = 'Copied!';
+          copyKeyBtn.textContent = 'done';
           copyKeyBtn.classList.add('copied');
           setTimeout(function() {
-            copyKeyBtn.textContent = 'Copy';
+            copyKeyBtn.textContent = 'cp';
             copyKeyBtn.classList.remove('copied');
           }, 2000);
         });
@@ -533,10 +909,10 @@
           '  data-backend-url="https://api.tranzmitai.com"\n' +
           '><\/script>';
         navigator.clipboard.writeText(snippet).then(function() {
-          copyCodeBtn.textContent = 'Copied!';
+          copyCodeBtn.textContent = 'done';
           copyCodeBtn.classList.add('copied');
           setTimeout(function() {
-            copyCodeBtn.textContent = 'Copy';
+            copyCodeBtn.textContent = 'cp';
             copyCodeBtn.classList.remove('copied');
           }, 2000);
         });
