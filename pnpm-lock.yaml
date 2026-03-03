@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  livekit-client: 2.15.16
+
 importers:
 
   .:
@@ -179,7 +182,7 @@ packages:
     resolution: {integrity: sha512-Fxoq+nZj6U9ykeQx07UGMFumw1hxE9Cr4O3IX3FfMjl3ZMRVMPfv8UOuqdoWMrLG6gZoIBeimfdc61St6z4JpQ==}
     dependencies:
       '@elevenlabs/types': 0.6.0
-      livekit-client: 2.17.2(@types/dom-mediacapture-record@1.0.22)
+      livekit-client: 2.15.16(@types/dom-mediacapture-record@1.0.22)
     transitivePeerDependencies:
       - '@types/dom-mediacapture-record'
     dev: false
@@ -914,8 +917,8 @@ packages:
     resolution: {integrity: sha512-EsshAucklmpuUAfkABPxJNhzj9v2sG7JuzFDL4ML1oJQSV14sqrpTYnsaOudMAw9yOaW53NU3QQTlUQoRs4czw==}
     dev: false
 
-  /@livekit/protocol@1.44.0:
-    resolution: {integrity: sha512-/vfhDUGcUKO8Q43r6i+5FrDhl5oZjm/X3U4x2Iciqvgn5C8qbj+57YPcWSJ1kyIZm5Cm6AV2nAPjMm3ETD/iyg==}
+  /@livekit/protocol@1.42.2:
+    resolution: {integrity: sha512-0jeCwoMJKcwsZICg5S6RZM4xhJoF78qMvQELjACJQn6/VB+jmiySQKOSELTXvPBVafHfEbMlqxUw2UR1jTXs2g==}
     dependencies:
       '@bufbuild/protobuf': 1.10.1
     dev: false
@@ -2307,13 +2310,13 @@ packages:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
     dev: true
 
-  /livekit-client@2.17.2(@types/dom-mediacapture-record@1.0.22):
-    resolution: {integrity: sha512-+67y2EtAWZabARlY7kANl/VT1Uu1EJYR5a8qwpT2ub/uBCltsEgEDOxCIMwE9HFR5w+z41HR6GL9hyEvW/y6CQ==}
+  /livekit-client@2.15.16(@types/dom-mediacapture-record@1.0.22):
+    resolution: {integrity: sha512-i4cDjlI7W5a7hiBjt3WeOzWwxRNx0ej2spq/JFQarXuvC1t3BbIAY5oOi61VIOHyU5nEQa83YAcKfoP6AeVUJg==}
     peerDependencies:
       '@types/dom-mediacapture-record': ^1
     dependencies:
       '@livekit/mutex': 1.1.1
-      '@livekit/protocol': 1.44.0
+      '@livekit/protocol': 1.42.2
       '@types/dom-mediacapture-record': 1.0.22
       events: 3.3.0
       jose: 6.1.3
