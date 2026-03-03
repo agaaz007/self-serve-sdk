@@ -29,6 +29,8 @@ export interface ModalOptions {
   onReturnHome?: () => void;
   /** Callback when user clicks "Proceed with Cancellation" on done screen (churned) */
   onProceedCancelFromDone?: () => void;
+  /** Callback when user ends the voice/chat call */
+  onEndCall?: () => void;
 }
 
 export class ModalManager {
@@ -507,6 +509,14 @@ export class ModalManager {
             </button>
           </div>
         `;
+      case 'interview':
+        return `
+          <div class="exit-button-footer">
+            <button class="exit-button-btn exit-button-btn-danger" data-action="end-call">
+              End Call
+            </button>
+          </div>
+        `;
       default:
         return '';
     }
@@ -591,6 +601,9 @@ export class ModalManager {
         break;
       case 'proceed-cancel-done':
         this.options.onProceedCancelFromDone?.();
+        break;
+      case 'end-call':
+        this.options.onEndCall?.();
         break;
       case 'close':
         this.close();
