@@ -1,6 +1,6 @@
 /**
  * ElevenLabs Conversational AI Agent Handler
- * Uses the @elevenlabs/client SDK for WebRTC voice-to-voice conversations
+ * Uses the @11labs/client SDK for WebRTC voice-to-voice conversations
  */
 
 import type {
@@ -59,7 +59,7 @@ async function loadElevenLabsSDK(): Promise<boolean> {
 
   // Try dynamic import (if bundled with npm)
   try {
-    const module = await import('@elevenlabs/client');
+    const module = await import('@11labs/client');
     Conversation = module.Conversation;
     console.log('[ElevenLabs] Loaded SDK via import');
     return true;
@@ -86,7 +86,6 @@ export class ElevenLabsAgentHandler {
   private receivedAudio = false;
   private interviewCompleted = false;
   private conversationStarted = false;
-
   // WebSocket fallback state (typed — used only when SDK is unavailable)
   private ws: WebSocket | null = null;
   private audioStream: MediaStream | null = null;
@@ -142,31 +141,18 @@ export class ElevenLabsAgentHandler {
         }
       }
 
-      // Build dynamic variables
-      const dynamicVars: Record<string, string> = { ...this.options.dynamicVariables };
-      if (!this.options.dynamicVariables && agentContextPrompt) {
-        dynamicVars.session_insights = agentContextPrompt;
-      }
-
-      // Session config: agentId and conversationToken are mutually exclusive in v0.15+
-      const sessionConfig: any = this.options.conversationToken
-        ? { conversationToken: this.options.conversationToken }
-        : { agentId: this.options.agentId, connectionType: 'webrtc' as const };
-
       const config: any = {
-        ...sessionConfig,
+        agentId: this.options.agentId,
+        connectionType: 'webrtc',
 
-        onConnect: ({ conversationId }: { conversationId: string }) => {
-          console.log('[ElevenLabs] Connected via WebRTC, conversationId:', conversationId);
+        onConnect: () => {
+          console.log('[ElevenLabs] Connected via WebRTC');
           this.conversationStarted = true;
           this.updateState({ isConnected: true });
-          if (conversationId) {
-            this.options.onConversationId?.(conversationId);
-          }
         },
 
-        onDisconnect: (details: any) => {
-          console.log('[ElevenLabs] Disconnected, reason:', details?.reason);
+        onDisconnect: () => {
+          console.log('[ElevenLabs] Disconnected');
           this.updateState({ isConnected: false, isSpeaking: false, isListening: false });
           if (!this.interviewCompleted) {
             if (this.conversationStarted) {
@@ -181,43 +167,66 @@ export class ElevenLabsAgentHandler {
           }
         },
 
-        onMessage: (msg: any) => {
-          console.log('[ElevenLabs] Message:', msg);
-          const role = msg.role || (msg.source === 'user' ? 'user' : 'agent');
-          if (role !== 'user') {
+        onStatusChange: (status: any) => {
+          console.log('[ElevenLabs] Status change:', status);
+        },
+
+        onMessage: (message: any) => {
+          console.log('[ElevenLabs] Message:', message);
+          if (message.source !== 'user') {
             this.conversationStarted = true;
           }
-          if (msg.message) {
+          if (message.message && message.isFinal !== false) {
             const entry: TranscriptEntry = {
-              role: role === 'user' ? 'user' : 'assistant',
-              content: msg.message,
+              role: message.source === 'user' ? 'user' : 'assistant',
+              content: message.message,
               timestamp: new Date().toISOString(),
             };
             this.options.onTranscript?.(entry);
           }
         },
 
-        onModeChange: ({ mode }: { mode: string }) => {
+        onModeChange: (mode: any) => {
           console.log('[ElevenLabs] Mode change:', mode);
           this.updateState({
-            isSpeaking: mode === 'speaking',
-            isListening: mode === 'listening',
+            isSpeaking: mode.mode === 'speaking',
+            isListening: mode.mode === 'listening',
           });
         },
 
-        onError: (message: string, context?: any) => {
-          console.error('[ElevenLabs] Error:', message, context);
-          this.emitError(message || 'ElevenLabs error', 'ELEVENLABS_ERROR');
+        onError: (error: any) => {
+          console.error('[ElevenLabs] Error:', error);
+          this.emitError(error.message || 'ElevenLabs error', 'ELEVENLABS_ERROR');
         },
       };
+
+      // Add conversation token for WebRTC (private agents)
+      if (this.options.conversationToken) {
+        config.conversationToken = this.options.conversationToken;
+      }
+
+      // Pass dynamic variables (without overriding the system prompt)
+      const dynamicVars: Record<string, string> = { ...this.options.dynamicVariables };
+
+      // If no dynamic variables but we have context, pass it as session_insights
+      if (!this.options.dynamicVariables && agentContextPrompt) {
+        dynamicVars.session_insights = agentContextPrompt;
+      }
 
       if (Object.keys(dynamicVars).length > 0) {
         config.dynamicVariables = dynamicVars;
       }
 
-      console.log('[ElevenLabs] Starting WebRTC session, token:', this.options.conversationToken ? 'yes' : 'none');
+      console.log('[ElevenLabs] Starting WebRTC session with config:', JSON.stringify(config, null, 2));
       this.conversation = await Conversation.startSession(config);
       console.log('[ElevenLabs] WebRTC session started successfully');
+
+      // Extract conversation ID from SDK return value
+      const conversationId = this.conversation?.getId?.();
+      if (conversationId) {
+        console.log('[ElevenLabs] conversation_id (from SDK):', conversationId);
+        this.options.onConversationId?.(conversationId);
+      }
 
     } catch (error) {
       console.error('[ElevenLabs] Connection error:', error);
@@ -580,8 +589,8 @@ export class ElevenLabsAgentHandler {
    * Send a text message (for text fallback mode)
    */
   sendText(text: string): void {
-    if (this.conversation?.sendUserMessage) {
-      this.conversation.sendUserMessage(text);
+    if (this.conversation?.sendMessage) {
+      this.conversation.sendMessage({ message: text });
     } else if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type: 'user_message', text }));
     }
