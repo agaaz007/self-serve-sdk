@@ -521,7 +521,7 @@ class ExitButton implements ExitButtonInstance {
 
     this.pollController = new AbortController();
 
-    const TIMEOUT_MS = 5000;
+    const TIMEOUT_MS = 30000;
     const INTERVAL_MS = 2000;
     const deadline = Date.now() + TIMEOUT_MS;
 
@@ -580,8 +580,8 @@ class ExitButton implements ExitButtonInstance {
       if (this.pollController?.signal.aborted) return;
     }
 
-    // 5s elapsed with no outcome — default to churned UI
-    console.warn('[ExitButton] Outcome not received within 5s — defaulting to churned UI');
+    // Timeout elapsed with no outcome — default to churned UI
+    console.warn('[ExitButton] Outcome not received within 30s — defaulting to churned UI');
     if (this.currentState === 'done' && this.modal) {
       this.modal.setOutcome('churned');
     }

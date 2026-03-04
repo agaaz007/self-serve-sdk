@@ -323,7 +323,7 @@ app.post('/api/exit-session/initiate', authenticate, validate(InitiateRequestSch
       try {
         await db.insert(sessions).values({
           id: sessionId,
-          tenantId: req.tenant?.id !== 'default' ? req.tenant?.id : null,
+          tenantId: req.tenant?.id || null,
           userId,
           status: 'initiated',
           agentId: agentId || null,
@@ -559,7 +559,7 @@ app.post('/api/exit-session/webhook/elevenlabs', async (req, res) => {
           status: outcome,
           outcome,
           transcript: formattedTranscript,
-          aiAnalysis: {
+          conversationAnalysis: {
             provider: 'groq',
             confidence,
             reason,
