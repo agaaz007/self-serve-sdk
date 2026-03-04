@@ -64,6 +64,7 @@ export const sessions = pgTable('sessions', {
   offers: jsonb('offers'),
   outcome: text('outcome'),
   aiAnalysis: jsonb('ai_analysis'),
+  conversationAnalysis: jsonb('conversation_analysis'),
   timing: jsonb('timing'),
   createdAt: timestamp('created_at').defaultNow(),
   completedAt: timestamp('completed_at'),
