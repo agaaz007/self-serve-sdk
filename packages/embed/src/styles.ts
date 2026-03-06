@@ -150,8 +150,9 @@ export const MODAL_STYLES = `
 .exit-button-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 24px 28px 8px;
+  position: relative;
 }
 
 .exit-button-title {
@@ -160,9 +161,12 @@ export const MODAL_STYLES = `
   color: var(--exit-button-text);
   margin: 0;
   letter-spacing: -0.01em;
+  text-align: center;
 }
 
 .exit-button-close {
+  position: absolute;
+  right: 28px;
   background: var(--exit-button-glass);
   border: 1px solid var(--exit-button-border);
   padding: 0;
