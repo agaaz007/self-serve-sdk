@@ -243,7 +243,7 @@ export class ModalManager {
       case 'connecting':
         return 'Getting things ready...';
       case 'permission':
-        return 'Let\'s connect';
+        return 'Before you go...';
       case 'interview':
         return 'We\'re listening';
       case 'offers':
@@ -294,9 +294,8 @@ export class ModalManager {
   private renderPermission(): string {
     return `
       <div class="exit-button-permission">
-        <h3 class="exit-button-permission-title">How would you like to connect?</h3>
         <p class="exit-button-permission-desc">
-          Your feedback truly matters to us. Choose your preferred way to share.
+          Tell us what's not working. Pick how you'd like to share — it only takes 2 minutes.
         </p>
         <div class="exit-button-mode-options">
           <button class="exit-button-mode-card exit-button-mode-card-voice" data-action="grant-permission">
