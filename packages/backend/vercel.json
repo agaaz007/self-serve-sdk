@@ -1,11 +1,62 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "functions": {
     "src/index.ts": {
       "includeFiles": "public/**"
     }
   },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/src/index.ts" }
+  "routes": [
+    {
+      "src": "^/(.*)$",
+      "has": [
+        { "type": "host", "value": "api.tranzmitai.com" }
+      ],
+      "headers": {
+        "x-vercel-enable-rewrite-caching": "0"
+      },
+      "transforms": [
+        {
+          "type": "request.headers",
+          "op": "set",
+          "target": { "key": "x-tranzmit-public-host" },
+          "args": "api.tranzmitai.com"
+        }
+      ],
+      "continue": true
+    },
+    {
+      "src": "^/(.*)$",
+      "has": [
+        { "type": "host", "value": "api-proxy-preview.tranzmitai.com" }
+      ],
+      "headers": {
+        "x-vercel-enable-rewrite-caching": "0"
+      },
+      "transforms": [
+        {
+          "type": "request.headers",
+          "op": "set",
+          "target": { "key": "x-tranzmit-public-host" },
+          "args": "api-proxy-preview.tranzmitai.com"
+        }
+      ],
+      "continue": true
+    },
+    {
+      "src": "^/(.*)$",
+      "has": [
+        { "type": "host", "value": "api.tranzmitai.com" }
+      ],
+      "dest": "https://api-production-2146.up.railway.app/$1"
+    },
+    {
+      "src": "^/(.*)$",
+      "has": [
+        { "type": "host", "value": "api-proxy-preview.tranzmitai.com" }
+      ],
+      "dest": "https://api-production-2146.up.railway.app/$1"
+    },
+    { "src": "/(.*)", "dest": "/src/index.ts" }
   ]
 }
