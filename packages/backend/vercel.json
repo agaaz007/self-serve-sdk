@@ -12,9 +12,6 @@
       "has": [
         { "type": "host", "value": "api.tranzmitai.com" }
       ],
-      "headers": {
-        "x-vercel-enable-rewrite-caching": "0"
-      },
       "transforms": [
         {
           "type": "request.headers",
@@ -30,9 +27,6 @@
       "has": [
         { "type": "host", "value": "api-proxy-preview.tranzmitai.com" }
       ],
-      "headers": {
-        "x-vercel-enable-rewrite-caching": "0"
-      },
       "transforms": [
         {
           "type": "request.headers",
@@ -44,10 +38,35 @@
       "continue": true
     },
     {
+      "src": "^/(v1/paywall-documents/.*)$",
+      "methods": ["GET", "HEAD"],
+      "has": [
+        { "type": "host", "value": "api.tranzmitai.com" }
+      ],
+      "headers": {
+        "x-vercel-enable-rewrite-caching": "1"
+      },
+      "dest": "https://api-production-2146.up.railway.app/$1"
+    },
+    {
+      "src": "^/(v1/paywall-documents/.*)$",
+      "methods": ["GET", "HEAD"],
+      "has": [
+        { "type": "host", "value": "api-proxy-preview.tranzmitai.com" }
+      ],
+      "headers": {
+        "x-vercel-enable-rewrite-caching": "1"
+      },
+      "dest": "https://api-production-2146.up.railway.app/$1"
+    },
+    {
       "src": "^/(.*)$",
       "has": [
         { "type": "host", "value": "api.tranzmitai.com" }
       ],
+      "headers": {
+        "x-vercel-enable-rewrite-caching": "0"
+      },
       "dest": "https://api-production-2146.up.railway.app/$1"
     },
     {
@@ -55,6 +74,9 @@
       "has": [
         { "type": "host", "value": "api-proxy-preview.tranzmitai.com" }
       ],
+      "headers": {
+        "x-vercel-enable-rewrite-caching": "0"
+      },
       "dest": "https://api-production-2146.up.railway.app/$1"
     },
     { "src": "/(.*)", "dest": "/src/index.ts" }
